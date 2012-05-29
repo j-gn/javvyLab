@@ -1,0 +1,3 @@
+[submodule "dependencies/subMath"]
+	path = dependencies/subMath
+	url = git://github.com/substans/subMath.git
