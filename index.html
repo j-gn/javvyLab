@@ -1,0 +1,103 @@
+<html>
+<script src="processing-1.3.6.js"></script>
+<script type="text/processing" data-processing-target="mycanvas">
+
+var GravityConst = 6.67 * pow(10, -11);
+var balls = new Array();
+var t = 0;
+var mousePlanet = {x:0,y:0, mass:-600000000};
+float PixelsToMeters( p )
+{
+	return p/10;
+}
+void setup()
+{
+
+	size(512,512);
+	PFont fontA = loadFont("courier");
+	t = millis() / 1000;
+	textFont(fontA, 14);
+	restHeight = height / 2;
+	lastDrawTime = t;
+	for (var i = 0; i < 4; i++) {
+		balls.push( { 
+			x: 70 + i * 30, 
+			y: restHeight + 100, 
+			r: 20,
+			mass: 5000000000,
+			velX: 0,
+			velY: 0,
+			forceY: 0,
+			forceX: 0,
+		} );
+	}
+}
+void UpdateTime()
+{
+	t = millis() / 1000;
+	deltaTime = t - lastDrawTime;
+	lastDrawTime = t;
+}
+void draw()
+{  
+	background(200, 255, 200);
+	UpdateTime();
+	for (var i = 0; i < balls.length; i++) {
+		var ball = balls[i];
+		var heat = abs(ball.velY * 100);
+		fill(heat, 110, 200);
+		ellipse(ball.x, ball.y, ball.r, ball.r);
+	}
+	
+	UpdateBallPhysics();
+	
+	noFill();
+	rect(0, 0, width - 1, height - 1);
+}
+
+void UpdateBallPhysics()
+{
+	mousePlanet.x = mouseX;
+	mousePlanet.y = mouseY;
+	for (var i = 0; i < balls.length; i++)	{
+		var ballA = balls[i];
+		ballA.forceX = 0;
+		ballA.forceY = 0;
+	}		
+	for (var i = 0; i < balls.length; i++)	{
+		var ballA = balls[i];
+		for (var j = 0; j < balls.length; j++)	{
+			if(i == j)
+				continue;
+			var ballB = balls[j];
+			CalculateGravityForce(ballA, ballB);
+		}
+		CalculateGravityForce(ballA, mousePlanet);
+	}
+	for (var i = 0; i < balls.length; i++){
+		ballA = balls[i];
+		ballA.velX += (ballA.forceX  / ballA.mass)* deltaTime; 
+		ballA.velY += (ballA.forceY  / ballA.mass)* deltaTime;
+		ballA.x += ballA.velX;
+		ballA.y += ballA.velY;
+	}
+}
+void CalculateGravityForce( ballA, ballB )
+{
+	var d = PixelsToMeters(Distance(ballA,ballB));
+	var mmofr2 = (ballA.mass * ballB.mass)/pow(d,2);
+	var dX = PixelsToMeters(ballB.x - ballA.x) / d;
+	var dY = PixelsToMeters(ballB.y - ballA.y) / d;
+	ballA.forceX +=  dX * GravityConst * mmofr2;
+	ballA.forceY +=  dY * GravityConst * mmofr2;
+	ballB.forceX +=  -dX * GravityConst * mmofr2;
+	ballB.forceY +=  -dY * GravityConst * mmofr2;
+}
+
+float Distance(a,b)
+{
+	return dist(a.x, a.y, b.x, b.y);
+}
+</script>
+<canvas id="mycanvas"></canvas>
+</html>
